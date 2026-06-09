@@ -4,9 +4,10 @@ import (
 	"errors"
 	"net/smtp"
 
+	"log/slog"
+
 	"github.com/darkoatanasovski/htmltags"
 	"github.com/jordan-wright/email"
-	"log/slog"
 )
 
 // Config holds the email configuration
@@ -112,7 +113,7 @@ func (s *SMTPSender) Send(options SendOptions) error {
 	e.Subject = options.Subject
 	e.Text = []byte(options.TextBody)
 	e.HTML = []byte(options.HtmlBody)
-	
+
 	var auth smtp.Auth
 	if user == "" {
 		auth = nil
@@ -122,8 +123,10 @@ func (s *SMTPSender) Send(options SendOptions) error {
 
 	err := e.Send(addr, auth)
 
-	if err != nil && s.config.Logger != nil {
-		s.config.Logger.Error("Error sending email", "error", err.Error())
+	if err != nil {
+		if s.config.Logger != nil {
+			s.config.Logger.Error("Error sending email", "error", err.Error())
+		}
 		return err
 	}
 
